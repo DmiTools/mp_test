@@ -17,7 +17,7 @@ try
         case 'create':
             $filename = strtolower(trim($argv[2]));
             if(strlen($filename) <= 0){
-                throw new Exception('Empty filenaeme for new migration file');
+                throw new Exception('Empty filename for new migration file');
             }
             $manager->create($filename);
         break;

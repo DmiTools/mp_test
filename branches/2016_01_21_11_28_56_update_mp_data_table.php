@@ -8,7 +8,7 @@ class UpdateMpData extends Migration
     }
     public function down()
     {
-        $this->db->exec('ALTER TABLE author DROP COLUMN author');
+        $this->db->exec('ALTER TABLE mp_datas DROP COLUMN author');
     }
 } 
 ?>
