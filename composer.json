@@ -1,0 +1,10 @@
+{
+	"name": "migration_project",
+	"description": "Migration project test work.",
+	"type": "project",
+	"autoload": {
+		"psr-4": {
+			"Lib\\": "lib/"
+		}
+	}
+}
