@@ -1,6 +1,6 @@
 <?php
 
-use Lib\Migration;
+use \Lib\Migration;
 
 class CreateMpUsers extends Migration
 {

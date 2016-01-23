@@ -7,10 +7,10 @@ if(!isset($argv[1])){
 }
 $topic = strtolower(trim($argv[1]));
 
-$dbh = new \PDO('mysql:host=localhost;dbname=#SECRET#', '#SECRET#', '#SECRET#');
-$manager = new \Lib\MigrationManager($dbh);
 try
 {
+    $dbh = new \PDO('mysql:host=localhost;dbname=#SECRET#', '#SECRET#', '#SECRET#');
+    $manager = new \Lib\MigrationManager($dbh);
     $manager->init();
     switch($topic)
     {

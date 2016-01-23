@@ -88,6 +88,25 @@ class $classname extends Migration
         $fileob->flock(LOCK_UN);
         return true;
     }
+    protected function includeFileWithClass($path)
+    {
+        $fp = tmpfile();
+        if(!$fp){
+            throw new Exception('Error of filesystem in '.__FUNCTION__);
+        }
+        $tmpfname = stream_get_meta_data($fp)['uri'];
+        $content = file_get_contents($path);
+        $namespace_name = str_replace('/', '_', substr($tmpfname, 1, strlen($tmpfname)));
+        $content = str_replace('<?php', "<?php\nnamespace $namespace_name;\n\n", $content);
+        fwrite($fp, $content);
+        require($tmpfname);
+        return $namespace_name;
+    }
+    protected function handleMethod($classname, $instance, $method)
+    {
+        $invoker = new \ReflectionMethod($classname, $method);
+        $invoker->invoke($instance);
+    }
     public function apply($numbers = 0)
     {
         if($numbers < 0){
@@ -97,12 +116,13 @@ class $classname extends Migration
         $i = 0;
         foreach($filelist as $file){
             if(array_search($file, $this->applied) === false){
+                
                 if($numbers > 0 && $i >= $numbers){
                     break;
                 }
-                $classname = $this->getClassByFileName($file, true);
                 
-                require_once(self::DIR_PATH.$file);
+                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
+                $classname = '\\'.$namespace_name.'\\'.$this->getClassByFileName($file, true);
                 
                 $class_desc = new \ReflectionClass($classname);
                 $instance = $class_desc->newInstance($this->db);
@@ -123,11 +143,6 @@ class $classname extends Migration
             }
         }
     }
-    protected function handleMethod($classname, $instance, $method)
-    {
-        $invoker = new \ReflectionMethod($classname, $method);
-        $invoker->invoke($instance);
-    }
     public function revert($numbers = 0)
     {
         if($numbers < 0){
@@ -140,9 +155,10 @@ class $classname extends Migration
             }
             if(file_exists(self::DIR_PATH.$file)){
                 
-                require_once(self::DIR_PATH.$file);
+                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
                 
-                $classname = $this->getClassByFileName($file, true);
+                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
+                $classname = '\\'.$namespace_name.'\\'.$this->getClassByFileName($file, true);
                 
                 $class_desc = new \ReflectionClass($classname);
                 $instance = $class_desc->newInstance($this->db);
