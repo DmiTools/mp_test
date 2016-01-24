@@ -9,9 +9,23 @@ $topic = strtolower(trim($argv[1]));
 
 try
 {
-    $dbh = new \PDO('mysql:host=localhost;dbname=#SECRET#', '#SECRET#', '#SECRET#');
-    $manager = new \Lib\MigrationManager($dbh);
+    $env = new SplFileObject('.env', 'r');
+      
+    foreach($env as $nv){
+        $nv = str_replace("\n", "", $nv);
+        $nv_list = explode('=', $nv);
+        if(isset($nv_list[0]) && isset($nv_list[1])){
+            putenv($nv_list[0].'='.$nv_list[1]);
+        }
+    }
+    
+    $pdo_string = 'mysql:host='.getenv('db_host').';dbname='.getenv('db_name');
+    
+    $dbh = new \PDO($pdo_string, getenv('db_user'), getenv('db_password'));
+    
+    $manager = new \Lib\MigrationManager($dbh, getenv('dir_path'));
     $manager->init();
+    
     switch($topic)
     {
         case 'create':
@@ -40,6 +54,9 @@ try
                 $numbers = 0;
             }
             $manager->revert($numbers);
+        break;
+        case 'status':
+            $manager->status();
         break;
         default:
             throw new Exception("Wrong parameter $topic");

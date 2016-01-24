@@ -4,16 +4,17 @@ namespace Lib;
 
 class MigrationManager
 {
-    const DIR_PATH = '#SECRET#';
     const PREG_VALID_FNAME = "#\d{4}\_\d{2}\_\d{2}\_\d{2}\_\d{2}\_\d{2}\_(\w+)\_table\.php#";
     const MIGRATIONS_TABLE = 'mp_migrations';
 
     protected $db;
     protected $applied;
+    protected $path;
     
-    public function __construct($db)
+    public function __construct($db, $path)
     {
-        $this->db = $db;       
+        $this->db = $db;
+        $this->path = $path;       
     }
     public function init()
     {
@@ -52,7 +53,7 @@ class MigrationManager
     }
     protected function getFileList()
     {
-        $dir = new \DirectoryIterator(self::DIR_PATH);
+        $dir = new \DirectoryIterator($this->path);
         $filelist = [];
         foreach($dir as $file){
             if($this->testMigrationFileName($file)){
@@ -66,7 +67,7 @@ class MigrationManager
     {
         $now = date('Y_m_d_H_i_s');
         $fileob = new \SplFileObject(
-          self::DIR_PATH.$now.'_'.$filename.'.php',
+          $this->path.$now.'_'.$filename.'.php',
           'w'
         );
         $classname = $this->getClassByFileName(str_replace('_table', '', $filename));
@@ -121,7 +122,7 @@ class $classname extends Migration
                     break;
                 }
                 
-                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
+                $namespace_name = $this->includeFileWithClass($this->path.$file);
                 $classname = '\\'.$namespace_name.'\\'.$this->getClassByFileName($file, true);
                 
                 $class_desc = new \ReflectionClass($classname);
@@ -153,11 +154,11 @@ class $classname extends Migration
             if($numbers > 0 && $i >= $numbers){
                 break;
             }
-            if(file_exists(self::DIR_PATH.$file)){
+            if(file_exists($this->path.$file)){
                 
-                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
+                $namespace_name = $this->includeFileWithClass($this->path.$file);
                 
-                $namespace_name = $this->includeFileWithClass(self::DIR_PATH.$file);
+                $namespace_name = $this->includeFileWithClass($this->path.$file);
                 $classname = '\\'.$namespace_name.'\\'.$this->getClassByFileName($file, true);
                 
                 $class_desc = new \ReflectionClass($classname);
@@ -179,5 +180,40 @@ class $classname extends Migration
             $i++;
         }
     }
+    
+    public function status()
+    {
+        echo "\nSTATUS OF MIGTATIONS\n\n";
+        
+        echo "Applied at this moment:\n\n";
+        
+        $flag = false;
+        foreach($this->applied as $apply){
+            echo $apply."\n";
+            $flag = true;
+        }
+        
+        if($flag === false){
+            echo "No applied migrations\n";
+        }
+        
+        echo "\nNeed to apply:\n\n";
+        
+        $filelist = $this->getFileList();
+        
+        $flag = false;
+        foreach($filelist as $flist){
+            if(array_search($flist, $this->applied) === false){
+                $flag = true;
+                echo $flist."\n";
+            }
+        }
+        
+        if($flag === false){
+             echo "No migrations to apply\n";
+        }
+        echo "\n";
+    }
+    
 }
 ?>
