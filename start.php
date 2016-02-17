@@ -5,6 +5,16 @@ require('vendor/autoload.php');
 if(!isset($argv[1])){
     $argv[1] = '';
 }
+
+
+if(!isset($argv[2])){
+     $argv[2] = '';
+}
+$numbers = intval(trim($argv[2]));
+if($numbers <= 0){
+    $numbers = 0;
+}
+
 $topic = strtolower(trim($argv[1]));
 
 try
@@ -35,24 +45,10 @@ try
             }
             $manager->create($filename);
         break;
-        case 'apply':
-            if(!isset($argv[2])){
-                $argv[2] = '';
-            }
-            $numbers = intval(trim($argv[2]));
-            if($numbers <= 0){
-                $numbers = 0;
-            }
+        case 'apply':           
             $manager->apply($numbers);
         break;
         case 'revert':
-            if(!isset($argv[2])){
-                $argv[2] = '';
-            }
-            $numbers = intval(trim($argv[2]));
-            if($numbers <= 0){
-                $numbers = 0;
-            }
             $manager->revert($numbers);
         break;
         case 'status':
